@@ -5,40 +5,42 @@ const email = form.querySelector("input[name='email']");
 const message = form.querySelector("textarea[name='message']");
 const btnSubmit = form.querySelector("button[type='submit']");
 
-const saveToStorage = () => {
-  const data = {
-    email: email.value.trim(),
-    message: message.value.trim(),
-  };
-  localStorage.setItem('feedback-form-state', JSON.stringify(data));
-};
-
-const alertMessage = () => {
-  const emailValue = email.value.trim();
-  const messageValue = message.value.trim();
-
-  if (emailValue === '' || messageValue === '') {
-    alert('Please fill in all fields');
-  } else {
-    localStorage.removeItem('feedback-form-state');
-    email.value = '';
-    message.value = '';
-  }
-};
+form.addEventListener(
+  'input',
+  throttle(() => {
+    localStorage.setItem(
+      'feedback-form-state',
+      JSON.stringify({
+        email: email.value,
+        message: message.value,
+      })
+    );
+    btnSubmit.disabled = !(email.value && message.value);
+  }, 500)
+);
 
 const localStorageFunction = () => {
   const store = localStorage.getItem('feedback-form-state');
   if (store) {
     const jsonTransition = JSON.parse(store);
     email.value = jsonTransition.email;
-    message.value = jsonTransition.email;
+    message.value = jsonTransition.message;
   }
 };
 
-form.addEventListener('input', throttle(saveToStorage), 500);
-form.addEventListener('change', saveToStorage);
-localStorageFunction();
-btnSubmit.addEventListener('click', event => {
+form.addEventListener('submit', event => {
   event.preventDefault();
-  alertMessage();
+
+  console.log({
+    email: email.value,
+    message: message.value,
+  });
+
+  form.reset();
+  localStorage.removeItem('feedback-form-state');
+  email.value = '';
+  message.value = '';
+  btnSubmit.disabled = true;
 });
+
+localStorageFunction();
